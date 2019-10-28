@@ -57,3 +57,88 @@ geom_qq(aes(sample = size_mm)) +
   facet_wrap(~site,scales = "free")
 ```
 
+Use `lubridate` to parse dates and times:
+
+I'm going to add a new column with `mutate()`
+
+```{r}
+lobster_date <- lobster_tidy %>% 
+  mutate(
+    date_new = lubridate::mdy(date)
+    )
+```
+
+Parse 'Date' Column to get the differenct pieces (month, year) separated...
+
+```{r}
+lobster_parse_date <-  lobster_date %>% 
+  mutate(
+    obs_month = lubridate::month(date_new, label = TRUE),
+    obs_year = lubridate::year(date_new)
+  )
+```
+
+Count Lobsters by different groupings
+Lets say, I want to count the number of lobsters by year and month
+```{r}
+lobster_ym <-  lobster_parse_date %>% 
+  count(obs_year, obs_month)
+
+lobster_ysite <-  lobster_parse_date %>% 
+  count(obs_year,site)
+
+lobster_site <-  lobster_parse_date %>% 
+  count(site)
+
+lobster_summary <- lobster_parse_date %>% 
+  group_by(site) %>% 
+  summarise(
+    mean_size = mean(size_mm, na.rm = TRUE),
+    sd_size = sd(size_mm, na.rm = TRUE),
+    sample_n = n()
+    )
+```
+
+## Confidence Intervals and t-tests
+
+`t.test()` function is used to find confidence intervals and perorm t-tests
+
+```{r}
+ivee_lobsters <- lobster_tidy %>% 
+  filter(site == "IVEE") %>% 
+  pull(size_mm)
+
+t.test(ivee_lobsters)
+```
+
+```{r}
+napl_lob <- lobster_parse_date %>% 
+  filter(site=="NAPL") %>% 
+  pull(size_mm)
+mohk_lob <- lobster_parse_date %>% 
+  filter(site=="MOHK") %>% 
+  pull(size_mm)
+
+t <- t.test(napl_lob,mohk_lob)
+```
+
+$`r t$parameter`$
+
+
+```{r}
+lob_2 <- lobster_tidy %>% 
+  filter(site %in% c("NAPL","MOHK"))
+
+TTEST_2 <- t.test(size_mm ~site, lob_2)
+
+```
+
+
+Now to make a geom_tile() heatmap
+
+```{r}
+ggplot(data = lobster_ysite, aes(x = obs_year, y=site))+
+  geom_tile(aes(fill=n))
+```
+
+
