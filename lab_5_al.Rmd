@@ -8,3 +8,52 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Objectives:
+
+ - Getting counts for different groups
+ - use {luridate} to parse dates
+ - Find confidence intervals & do t-tsts with t.test()
+ - Heatmap with geom_tile()
+ 
+ 
+```{r, include=FALSE}
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+```{r}
+# Import Lobster Data
+
+lobster_abundance <- read_csv(here("data","lobster_abundance.csv"), na="-99999") %>% 
+  clean_names()
+
+
+```
+
+Time to learn something new: Use the dplyr::uncount() unction to expand a frequency variable
+
+```{r}
+lobster_tidy <- lobster_abundance %>% 
+  uncount(lobster_count)
+```
+
+```{r}
+ggplot(data = lobster_tidy, aes(x=site, y=size_mm)) +
+  geom_jitter(aes(color = site,
+                  width = 0.2))
+
+
+ggplot(data = lobster_tidy, aes(x=site, y=size_mm)) +
+  geom_violin(aes(color = site))
+
+
+ggplot(data = lobster_tidy, aes(x=size_mm)) +
+geom_histogram(aes(fill = site)) +
+  facet_wrap(~site,scales = "free")
+ggplot(data = lobster_tidy) +
+geom_qq(aes(sample = size_mm)) +
+  facet_wrap(~site,scales = "free")
+```
+
